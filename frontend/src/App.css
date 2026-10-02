@@ -1,0 +1,185 @@
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  font-family: system-ui, sans-serif;
+  color: #e6e9ef;
+}
+
+header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: #9aa4b2;
+  margin-top: 0;
+}
+
+.add-game-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.search-box input,
+.add-game-form > input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #3a4150;
+  background: #1b1f27;
+  color: inherit;
+}
+
+.add-game-form > input[type="number"] {
+  max-width: 140px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1b1f27;
+  border: 1px solid #3a4150;
+  border-radius: 6px;
+  margin-top: 4px;
+  list-style: none;
+  padding: 0;
+  z-index: 10;
+}
+
+.suggestions li {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #262c38;
+}
+
+.or-divider {
+  color: #6b7280;
+}
+
+.add-game-form button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #66c0f4;
+  color: #0b0e13;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-game-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #ff6b6b;
+  width: 100%;
+  margin: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.game-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.game-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #262c38;
+  background: #171a21;
+  cursor: pointer;
+}
+
+.game-list li.selected {
+  border-color: #66c0f4;
+}
+
+.game-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.game-name {
+  font-weight: 600;
+}
+
+.price {
+  color: #cbd3e0;
+}
+
+.price.on-sale {
+  color: #a4d007;
+}
+
+.price.unknown {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.discount {
+  margin-left: 0.5rem;
+  background: #a4d007;
+  color: #0b0e13;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.remove-btn:hover {
+  color: #ff6b6b;
+}
+
+.empty-state {
+  color: #6b7280;
+}
+
+.price-chart {
+  background: #171a21;
+  border: 1px solid #262c38;
+  border-radius: 8px;
+  padding: 1rem;
+}
