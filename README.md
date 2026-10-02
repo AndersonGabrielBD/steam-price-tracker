@@ -1,5 +1,7 @@
 # Steam Price Tracker
 
+![CI](https://github.com/AndersonGabrielBD/steam-price-tracker/actions/workflows/ci.yml/badge.svg)
+
 Rastreador de preços de jogos da Steam **em reais (R$)**, com histórico de preço e atualização ao vivo via WebSocket. Preços reais cobrados pela Steam no Brasil (não conversão por câmbio) — a consulta usa `cc=br` na API da Steam.
 
 ## Como funciona
