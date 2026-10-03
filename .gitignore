@@ -9,3 +9,6 @@ dist/
 *.egg-info/
 .vscode/
 .idea/
+.coverage
+*.db
+*.log
