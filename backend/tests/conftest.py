@@ -22,6 +22,14 @@ def _fresh_schema():
     Base.metadata.drop_all(bind=test_engine)
 
 
+@pytest.fixture(autouse=True)
+def _no_redis_cache(monkeypatch):
+    # Unit tests must not depend on (or be polluted by) a real Redis instance --
+    # e.g. two tests reusing the same Steam appid would otherwise read back
+    # whichever payload the first test cached, instead of their own mock.
+    monkeypatch.setattr("app.steam_client.cached", lambda key, loader, ttl_seconds=None: loader())
+
+
 @pytest.fixture
 def db_session():
     session = TestingSessionLocal()

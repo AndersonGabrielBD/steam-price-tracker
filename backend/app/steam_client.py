@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 import httpx
 
+from app.cache import cached
 from app.config import settings
 
 
@@ -30,20 +31,31 @@ class SteamPrice:
     header_image_url: str | None = None
 
 
-def fetch_game_price(appid: int, timeout: float = 10.0) -> SteamPrice:
-    url = f"{settings.steam_api_base_url}/appdetails"
-    params = {
-        "appids": appid,
-        "cc": settings.steam_region_cc,
-        "l": settings.steam_region_lang,
-    }
-    try:
-        response = httpx.get(url, params=params, timeout=timeout)
-        response.raise_for_status()
-    except httpx.HTTPError as exc:
-        raise SteamAPIError(f"Failed to reach Steam API for appid={appid}: {exc}") from exc
+def _fetch_appdetails_raw(appid: int, timeout: float) -> dict:
+    """Cached in Redis for a short TTL (shorter than the Celery check interval)
+    so bursts of requests for the same game -- e.g. several users loading the
+    same seeded demo game -- don't each trigger a separate Steam API call.
+    """
 
-    payload = response.json()
+    def _call() -> dict:
+        url = f"{settings.steam_api_base_url}/appdetails"
+        params = {
+            "appids": appid,
+            "cc": settings.steam_region_cc,
+            "l": settings.steam_region_lang,
+        }
+        try:
+            response = httpx.get(url, params=params, timeout=timeout)
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise SteamAPIError(f"Failed to reach Steam API for appid={appid}: {exc}") from exc
+        return response.json()
+
+    return cached(f"steam:appdetails:{appid}:{settings.steam_region_cc}", _call)
+
+
+def fetch_game_price(appid: int, timeout: float = 10.0) -> SteamPrice:
+    payload = _fetch_appdetails_raw(appid, timeout)
     entry = payload.get(str(appid))
     if not entry or not entry.get("success"):
         raise GameNotFoundError(f"Steam has no data for appid={appid}")
