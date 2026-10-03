@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { searchGames } from "../api";
+import { IconPlus, IconSearch } from "./icons";
 
 export default function AddGameForm({ onAdd }) {
   const [term, setTerm] = useState("");
@@ -22,7 +23,7 @@ export default function AddGameForm({ onAdd }) {
     e?.preventDefault();
     const idToAdd = overrideAppid ?? appid;
     if (!idToAdd) {
-      setError("Type a Steam appid, or search by name and pick a suggestion.");
+      setError("Digite um Steam appid, ou busque pelo nome e escolha uma sugestão.");
       return;
     }
     setLoading(true);
@@ -42,9 +43,10 @@ export default function AddGameForm({ onAdd }) {
   return (
     <form className="add-game-form" onSubmit={handleSubmit}>
       <div className="search-box">
+        <IconSearch className="search-icon" width={16} height={16} aria-hidden="true" />
         <input
           type="text"
-          placeholder="Search a game by name..."
+          placeholder="Buscar um jogo pelo nome..."
           value={term}
           onChange={(e) => handleSearch(e.target.value)}
         />
@@ -58,7 +60,7 @@ export default function AddGameForm({ onAdd }) {
           </ul>
         )}
       </div>
-      <span className="or-divider">or</span>
+      <span className="or-divider">ou</span>
       <input
         type="number"
         placeholder="Steam appid"
@@ -66,7 +68,13 @@ export default function AddGameForm({ onAdd }) {
         onChange={(e) => setAppid(e.target.value)}
       />
       <button type="submit" disabled={loading}>
-        {loading ? "Adding..." : "Track"}
+        {loading ? (
+          "Adicionando..."
+        ) : (
+          <>
+            <IconPlus width={15} height={15} /> Rastrear
+          </>
+        )}
       </button>
       {error && <p className="error">{error}</p>}
     </form>

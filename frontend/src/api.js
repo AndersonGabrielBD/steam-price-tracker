@@ -1,8 +1,9 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const WS_URL = API_URL.replace(/^http/, "ws") + "/ws/prices";
 
-export async function listGames() {
-  const res = await fetch(`${API_URL}/games`);
+export async function listGames({ sort = "added_at", order = "desc", onSaleOnly = false } = {}) {
+  const params = new URLSearchParams({ sort, order, on_sale_only: String(onSaleOnly) });
+  const res = await fetch(`${API_URL}/games?${params}`);
   if (!res.ok) throw new Error("Failed to load games");
   return res.json();
 }

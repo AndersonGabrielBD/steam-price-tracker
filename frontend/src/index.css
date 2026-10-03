@@ -1,11 +1,50 @@
 :root {
   color-scheme: dark;
-  font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
+  font:
+    16px/1.5 "Inter",
+    ui-sans-serif,
+    system-ui,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+
+  --bg: #0c0d14;
+  --bg-elevated: #121420;
+  --surface: #191b28;
+  --surface-hover: #212335;
+  --border: #2a2c40;
+  --border-light: #383b56;
+  --text: #ebebf2;
+  --text-muted: #9394ab;
+  --text-faint: #65667d;
+
+  --purple: #8b5cf6;
+  --purple-dark: #6d28d9;
+  --purple-light: #b4a0fb;
+  --purple-glow: rgba(139, 92, 246, 0.35);
+
+  --coral: #fb6f92;
+  --coral-dark: #e14d74;
+  --coral-glow: rgba(251, 111, 146, 0.35);
+
+  --amber: #fbbf24;
+  --amber-dark: #d99710;
+  --amber-glow: rgba(251, 191, 36, 0.3);
+
+  --sky: #4fb2ff;
+  --sky-dark: #2a8fe0;
+  --sky-glow: rgba(79, 178, 255, 0.3);
+
+  --success: #4ade80;
+  --warning: var(--amber);
+  --danger: #f87171;
 }
 
 body {
   margin: 0;
-  background: #0f1115;
+  background:
+    radial-gradient(ellipse 1200px 600px at 50% -10%, var(--purple-glow) 0%, transparent 60%),
+    var(--bg);
   min-height: 100vh;
 }
 
