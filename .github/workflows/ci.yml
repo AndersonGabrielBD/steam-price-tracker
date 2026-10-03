@@ -27,8 +27,8 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
-      - name: Run tests
-        run: pytest -q
+      - name: Run tests with coverage
+        run: pytest -q --cov=app --cov-report=term-missing
 
   frontend:
     runs-on: ubuntu-latest
