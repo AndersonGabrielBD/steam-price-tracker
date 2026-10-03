@@ -1,6 +1,9 @@
 from celery import Celery
 
 from app.config import settings
+from app.logging_config import configure_logging
+
+configure_logging()
 
 celery_app = Celery(
     "price_tracker",

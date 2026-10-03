@@ -1,4 +1,4 @@
-import logging
+import structlog
 
 from app.celery_app import celery_app
 from app.database import SessionLocal
@@ -6,7 +6,7 @@ from app.models import Game, PriceSnapshot, utcnow
 from app.pubsub import publish_price_update
 from app.steam_client import GameNotFoundError, SteamAPIError, fetch_game_price
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @celery_app.task
@@ -28,7 +28,7 @@ def check_single_game_price(self, game_id: int) -> dict | None:
     with SessionLocal() as db:
         game = db.get(Game, game_id)
         if game is None:
-            logger.warning("check_single_game_price: game %s no longer exists", game_id)
+            logger.warning("game_not_found_in_db", game_id=game_id)
             return None
 
         try:
@@ -38,7 +38,7 @@ def check_single_game_price(self, game_id: int) -> dict | None:
             raise self.retry(exc=exc, countdown=30 * (2**self.request.retries))
         except GameNotFoundError as exc:
             # Permanent-ish failure for this appid -- don't retry, just log.
-            logger.warning("check_single_game_price: %s", exc)
+            logger.warning("game_not_found_on_steam", game_id=game_id, error=str(exc))
             return None
 
         last_snapshot = (

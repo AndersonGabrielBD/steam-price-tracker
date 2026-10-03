@@ -1,14 +1,24 @@
 import asyncio
 import contextlib
+import uuid
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import redis
+import structlog
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
+from app.cache import get_redis_client
 from app.config import settings
 from app.database import Base, engine
+from app.logging_config import configure_logging
 from app.pubsub import listen_for_price_updates
 from app.routers import games
 from app.websocket_manager import manager
+
+configure_logging()
+logger = structlog.get_logger(__name__)
 
 _pubsub_task: asyncio.Task | None = None
 
@@ -43,9 +53,38 @@ app.add_middleware(
 app.include_router(games.router)
 
 
+@app.middleware("http")
+async def bind_request_id(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    structlog.contextvars.bind_contextvars(request_id=request_id)
+    try:
+        return await call_next(request)
+    finally:
+        structlog.contextvars.clear_contextvars()
+
+
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    checks = {"database": "ok", "redis": "ok"}
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as exc:
+        checks["database"] = "error"
+        logger.warning("health_check_database_failed", error=str(exc))
+
+    try:
+        get_redis_client().ping()
+    except redis.RedisError as exc:
+        checks["redis"] = "error"
+        logger.warning("health_check_redis_failed", error=str(exc))
+
+    status = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
+    return JSONResponse(
+        content={"status": status, "checks": checks},
+        status_code=200 if status == "ok" else 503,
+    )
 
 
 @app.websocket("/ws/prices")

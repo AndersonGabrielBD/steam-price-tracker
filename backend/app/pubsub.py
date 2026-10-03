@@ -7,8 +7,11 @@ import json
 
 import redis
 import redis.asyncio as aioredis
+import structlog
 
 from app.config import settings
+
+logger = structlog.get_logger(__name__)
 
 PRICE_UPDATES_CHANNEL = "price_updates"
 
@@ -18,6 +21,7 @@ _sync_redis = redis.from_url(settings.redis_url)
 def publish_price_update(event: dict) -> None:
     """Called from the Celery task (sync context) when a price changes."""
     _sync_redis.publish(PRICE_UPDATES_CHANNEL, json.dumps(event, default=str))
+    logger.info("price_update_published", game_id=event.get("game_id"))
 
 
 async def listen_for_price_updates():
