@@ -39,6 +39,20 @@ def _no_itad_backfill(monkeypatch):
     monkeypatch.setattr("app.routers.games.settings.itad_api_key", "")
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    # slowapi's in-memory counters are process-global, so without a reset
+    # between tests, unrelated earlier tests hitting POST /games or
+    # /games/search would push later tests over the limit. The one test that
+    # specifically proves rate limiting works calls the endpoint enough times
+    # within itself to trip it, independent of this reset.
+    from app.rate_limit import limiter
+
+    limiter.reset()
+    yield
+    limiter.reset()
+
+
 @pytest.fixture
 def db_session():
     session = TestingSessionLocal()

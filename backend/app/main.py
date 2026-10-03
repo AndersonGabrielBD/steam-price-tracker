@@ -7,6 +7,9 @@ import structlog
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import text
 
 from app.cache import get_redis_client
@@ -14,6 +17,7 @@ from app.config import settings
 from app.database import Base, engine
 from app.logging_config import configure_logging
 from app.pubsub import listen_for_price_updates
+from app.rate_limit import limiter
 from app.routers import games
 from app.websocket_manager import manager
 
@@ -42,6 +46,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Steam Price Tracker", version="0.1.0", lifespan=lifespan)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

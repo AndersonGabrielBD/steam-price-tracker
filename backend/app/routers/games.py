@@ -1,8 +1,11 @@
+import csv
+import io
 from datetime import datetime
 from typing import Literal
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -10,6 +13,7 @@ from app.config import settings
 from app.database import get_db
 from app.itad_client import ItadAPIError, fetch_steam_br_history, lookup_game_id
 from app.models import Game, PriceSnapshot, utcnow
+from app.rate_limit import limiter
 from app.schemas import GameCreate, GameHistoryOut, GameOut
 from app.steam_client import GameNotFoundError, SteamAPIError, fetch_game_price, search_games
 
@@ -81,7 +85,8 @@ def _with_latest_price(db: Session, game: Game) -> GameOut:
 
 
 @router.get("/search")
-def search(q: str = Query(min_length=2)):
+@limiter.limit("20/minute")
+def search(request: Request, q: str = Query(min_length=2)):
     """Best-effort search by name, to help pick a Steam appid in the UI."""
     return search_games(q)
 
@@ -112,7 +117,8 @@ def list_games(
 
 
 @router.post("", response_model=GameOut, status_code=201)
-def add_game(payload: GameCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def add_game(request: Request, payload: GameCreate, db: Session = Depends(get_db)):
     existing = db.query(Game).filter(Game.steam_appid == payload.steam_appid).first()
     if existing:
         raise HTTPException(status_code=409, detail="This game is already being tracked")
@@ -164,6 +170,38 @@ def get_game_history(game_id: int, db: Session = Depends(get_db)):
     if game is None:
         raise HTTPException(status_code=404, detail="Game not found")
     return GameHistoryOut.model_validate({**game.__dict__, "history": game.price_history})
+
+
+@router.get("/{game_id}/history.csv")
+def get_game_history_csv(game_id: int, db: Session = Depends(get_db)):
+    game = db.get(Game, game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(
+        ["checked_at", "price_brl", "initial_price_brl", "discount_percent", "is_on_sale", "source"]
+    )
+    for snapshot in game.price_history:
+        writer.writerow(
+            [
+                snapshot.checked_at.isoformat(),
+                snapshot.price_brl,
+                snapshot.initial_price_brl,
+                snapshot.discount_percent,
+                snapshot.is_on_sale,
+                snapshot.source,
+            ]
+        )
+    buffer.seek(0)
+
+    safe_name = "".join(c if c.isalnum() else "_" for c in game.name)
+    return StreamingResponse(
+        buffer,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{safe_name}_price_history.csv"'},
+    )
 
 
 @router.delete("/{game_id}", status_code=204)
