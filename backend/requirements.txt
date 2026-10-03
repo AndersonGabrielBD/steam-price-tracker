@@ -4,7 +4,7 @@ sqlalchemy==2.0.35
 psycopg2-binary==2.9.9
 alembic==1.13.3
 pydantic==2.9.2
-pydantic-settings==2.5.2
+pydantic-settings==2.15.0
 celery==5.4.0
 redis==5.0.8
 httpx==0.27.2
