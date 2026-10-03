@@ -27,6 +27,7 @@ class SteamPrice:
     discount_percent: int
     is_on_sale: bool
     is_free: bool
+    header_image_url: str | None = None
 
 
 def fetch_game_price(appid: int, timeout: float = 10.0) -> SteamPrice:
@@ -48,6 +49,7 @@ def fetch_game_price(appid: int, timeout: float = 10.0) -> SteamPrice:
         raise GameNotFoundError(f"Steam has no data for appid={appid}")
 
     data = entry["data"]
+    header_image_url = data.get("header_image")
 
     if data.get("is_free"):
         return SteamPrice(
@@ -57,6 +59,7 @@ def fetch_game_price(appid: int, timeout: float = 10.0) -> SteamPrice:
             discount_percent=0,
             is_on_sale=False,
             is_free=True,
+            header_image_url=header_image_url,
         )
 
     price_overview = data.get("price_overview")
@@ -72,6 +75,7 @@ def fetch_game_price(appid: int, timeout: float = 10.0) -> SteamPrice:
         discount_percent=price_overview["discount_percent"],
         is_on_sale=price_overview["discount_percent"] > 0,
         is_free=False,
+        header_image_url=header_image_url,
     )
 
 

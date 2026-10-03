@@ -12,5 +12,13 @@ class Settings(BaseSettings):
     price_check_interval_minutes: int = 20
     cors_origins: list[str] = ["http://localhost:5173"]
 
+    itad_api_key: str = ""
+    itad_base_url: str = "https://api.isthereanydeal.com"
+
+    resend_api_key: str = ""
+    alert_from_email: str = "alerts@steam-price-tracker.app"
+
+    price_cache_ttl_seconds: int = 240
+
 
 settings = Settings()

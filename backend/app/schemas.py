@@ -14,6 +14,8 @@ class PriceSnapshotOut(BaseModel):
     initial_price_brl: float | None
     discount_percent: int
     is_on_sale: bool
+    source: str
+    price_currency: str
     checked_at: datetime
 
 
@@ -23,8 +25,10 @@ class GameOut(BaseModel):
     id: int
     steam_appid: int
     name: str
+    header_image_url: str | None = None
     added_at: datetime
     latest_price: PriceSnapshotOut | None = None
+    is_all_time_low: bool = False
 
 
 class GameHistoryOut(BaseModel):
