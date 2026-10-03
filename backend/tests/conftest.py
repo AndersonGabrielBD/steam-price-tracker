@@ -30,6 +30,15 @@ def _no_redis_cache(monkeypatch):
     monkeypatch.setattr("app.steam_client.cached", lambda key, loader, ttl_seconds=None: loader())
 
 
+@pytest.fixture(autouse=True)
+def _no_itad_backfill(monkeypatch):
+    # Tests must not depend on a real ITAD API key or network call -- even
+    # though backend/.env has a real key for local/manual testing, unit tests
+    # pretend it's unset so `_backfill_history` takes its no-op path. Tests
+    # that specifically exercise the backfill override this.
+    monkeypatch.setattr("app.routers.games.settings.itad_api_key", "")
+
+
 @pytest.fixture
 def db_session():
     session = TestingSessionLocal()
